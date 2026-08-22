@@ -17,6 +17,14 @@ int main(void) {
 
     listen_socket(&server_fd, 10);
 
+    int client_fd = accept(server_fd, NULL, NULL);
+    send(client_fd, "Hello", 5, 0);
+
+    printf("%d\n", client_fd);
+
+    close(server_fd);
+    close(client_fd);
+
     return EXIT_SUCCESS;
 }
 
