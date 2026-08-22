@@ -8,13 +8,14 @@
 
 int create_socket();
 void bind_socket(int *server_fd);
+void listen_socket(int *server_fd, int n);
 
 int main(void) {
     int server_fd = create_socket();
 
     bind_socket(&server_fd);
 
-    printf("bound to 127.0.0.1:8080");
+    listen_socket(&server_fd, 10);
 
     return EXIT_SUCCESS;
 }
@@ -38,6 +39,13 @@ void bind_socket(int *server_fd) {
     addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 
     if (bind(*server_fd, (struct sockaddr *)&addr, sizeof addr) == -1) {
+        fprintf(stderr, "error binding socket\n");
+        exit(EXIT_FAILURE);
+    }
+}
+
+void listen_socket(int *server_fd, int n) {
+    if (listen(*server_fd, n) == -1) {
         fprintf(stderr, "error binding socket\n");
         exit(EXIT_FAILURE);
     }
