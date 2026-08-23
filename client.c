@@ -5,6 +5,12 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#define HANDLE_ERR(msg)                                                        \
+    do {                                                                       \
+        perror("send");                                                        \
+        exit(EXIT_FAILURE);                                                    \
+    } while (0)
+
 #define BUFCAP 1024
 #define PORT   8080
 
@@ -21,8 +27,7 @@ int create_socket(void) {
     int client_fd = socket(AF_INET, SOCK_STREAM, 0);
 
     if (client_fd == -1) {
-        perror("socket");
-        exit(EXIT_FAILURE);
+        HANDLE_ERR("Couldn't create socket!");
     }
 
     return client_fd;
@@ -35,8 +40,7 @@ void connect_to_server(int client_fd) {
 
     if (connect(client_fd, (struct sockaddr *)&server_addr, sizeof server_addr)
         == -1) {
-        perror("connect");
-        exit(EXIT_FAILURE);
+        HANDLE_ERR("Couldn't connect to server!");
     }
 }
 
@@ -52,8 +56,7 @@ void start_client(void) {
 
     while (1) {
         if (send(client_fd, client_buf, strlen(client_buf), 0) == -1) {
-            perror("send");
-            exit(EXIT_FAILURE);
+            HANDLE_ERR("Couldn't send message to server");
         }
 
         printf("Sent to server: %s\n", client_buf);

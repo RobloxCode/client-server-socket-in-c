@@ -5,6 +5,12 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#define HANDLE_ERR(msg)                                                        \
+    do {                                                                       \
+        perror("send");                                                        \
+        exit(EXIT_FAILURE);                                                    \
+    } while (0)
+
 #define BUFCAP 1024
 #define PORT   8080
 
@@ -23,8 +29,7 @@ int create_socket(void) {
     int server_fd = socket(AF_INET, SOCK_STREAM, 0);
 
     if (server_fd == -1) {
-        fprintf(stderr, "error creating socket\n");
-        exit(EXIT_FAILURE);
+        HANDLE_ERR("Couldn't create socket!");
     }
 
     return server_fd;
@@ -38,15 +43,13 @@ void bind_socket(int server_fd) {
     addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 
     if (bind(server_fd, (struct sockaddr *)&addr, sizeof addr) == -1) {
-        fprintf(stderr, "error binding socket\n");
-        exit(EXIT_FAILURE);
+        HANDLE_ERR("Couldn't bind socket!");
     }
 }
 
 void listen_socket(int server_fd, int n) {
     if (listen(server_fd, n) == -1) {
-        fprintf(stderr, "error binding socket\n");
-        exit(EXIT_FAILURE);
+        HANDLE_ERR("Couldn't listening to client");
     }
 }
 
@@ -54,8 +57,7 @@ int accept_client(int server_fd) {
     int client_fd = accept(server_fd, NULL, NULL);
 
     if (client_fd == -1) {
-        fprintf(stderr, "Error acceting to client\n");
-        exit(EXIT_FAILURE);
+        HANDLE_ERR("Couldn't accept client!");
     }
 
     return client_fd;
@@ -84,16 +86,16 @@ void start_server(void) {
             client_buf[bytes_recieved] = '\0';
             printf("Recieved from client: %s\n", client_buf);
         } else if (bytes_recieved == 0) {
-            printf("End of connection\n");
+            printf("Client disconnected\n");
             break;
         } else {
-            fprintf(stderr, "Client disconnected\n");
-            exit(EXIT_FAILURE);
+            printf("recv stopped\n");
+            break;
         }
 
         if (send(client_fd, server_buf, strlen(server_buf), 0) == -1) {
-            fprintf(stderr, "Error sending message to client\n");
-            exit(EXIT_FAILURE);
+            perror("Error sending message to client");
+            break;
         }
 
         printf("Sent to client: %s\n", server_buf);
