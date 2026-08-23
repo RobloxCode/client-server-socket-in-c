@@ -7,23 +7,22 @@
 #define PORT 8080
 
 int create_socket();
-void bind_socket(int *server_fd);
-void listen_socket(int *server_fd, int n);
+void connect_to_server(int *client_fd);
 
 int main(void) {
-    char client_buf[1024] = {0};
-    char server_buf[1024] = "hello from server";
+    char client_msg[1024] = "hello from client";
+    char server_buf[1024] = {0};
+
+    int client_fd = create_socket();
     int server_fd = create_socket();
 
-    bind_socket(&server_fd);
-
-    listen_socket(&server_fd, 10);
-
-    int client_fd = accept(server_fd, NULL, NULL);
+    connect_to_server(&client_fd);
 
     while (1) {
-        recv(client_fd, client_buf, sizeof client_buf - 1, 0);
-        printf("Recieved from client: %s\n", client_buf);
+        if (send(client_fd, client_msg, sizeof client_msg - 1, 0) == -1) {
+            fprintf(stderr, "Error sending message to client\n");
+            exit(EXIT_FAILURE);
+        }
 
         ssize_t bytes_recieved =
             recv(client_fd, server_buf, sizeof server_buf - 1, 0);
@@ -37,14 +36,9 @@ int main(void) {
             fprintf(stderr, "Error connecting to client\n");
             exit(EXIT_FAILURE);
         }
-
-        if (send(client_fd, server_buf, sizeof server_buf - 1, 0) == -1) {
-            fprintf(stderr, "Error sending message to client\n");
-            exit(EXIT_FAILURE);
-        }
     }
 
-    close(server_fd);
+    close(client_fd);
 
     return EXIT_SUCCESS;
 }
@@ -73,9 +67,14 @@ void bind_socket(int *server_fd) {
     }
 }
 
-void listen_socket(int *server_fd, int n) {
-    if (listen(*server_fd, n) == -1) {
-        fprintf(stderr, "error binding socket\n");
+void connect_to_server(int *client_fd) {
+    struct sockaddr_in server_addr = {.sin_family = AF_INET,
+                                      .sin_addr.s_addr = htonl(INADDR_LOOPBACK),
+                                      .sin_port = htons(8080)};
+
+    if (connect(*client_fd, (struct sockaddr *)&server_addr, sizeof server_addr)
+        == -1) {
+        fprintf(stderr, "Error sending message to client\n");
         exit(EXIT_FAILURE);
     }
 }
