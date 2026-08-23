@@ -10,43 +10,10 @@
 
 int create_socket(void);
 void connect_to_server(int client_fd);
+void start_client(void);
 
 int main(void) {
-    char client_buf[] = "hello from client";
-    char server_buf[BUFCAP] = {0};
-
-    int client_fd = create_socket();
-
-    connect_to_server(client_fd);
-
-    printf("Connected to server!\n");
-
-    while (1) {
-        if (send(client_fd, client_buf, strlen(client_buf), 0) == -1) {
-            perror("send");
-            exit(EXIT_FAILURE);
-        }
-
-        printf("Sent to server: %s\n", client_buf);
-
-        ssize_t bytes_received =
-            recv(client_fd, server_buf, sizeof server_buf - 1, 0);
-
-        if (bytes_received > 0) {
-            server_buf[bytes_received] = '\0';
-
-            printf("Received from server: %s\n", server_buf);
-        } else if (bytes_received == 0) {
-            printf("Server disconnected\n");
-            break;
-        } else {
-            perror("recv");
-            break;
-        }
-    }
-
-    close(client_fd);
-
+    start_client();
     return EXIT_SUCCESS;
 }
 
@@ -71,4 +38,40 @@ void connect_to_server(int client_fd) {
         perror("connect");
         exit(EXIT_FAILURE);
     }
+}
+
+void start_client(void) {
+    char client_buf[] = "hello from client";
+    char server_buf[BUFCAP] = {0};
+
+    int client_fd = create_socket();
+
+    connect_to_server(client_fd);
+
+    printf("Connected to server!\n");
+
+    while (1) {
+        if (send(client_fd, client_buf, strlen(client_buf), 0) == -1) {
+            perror("send");
+            exit(EXIT_FAILURE);
+        }
+
+        printf("Sent to server: %s\n", client_buf);
+
+        ssize_t bytes_received =
+            recv(client_fd, server_buf, sizeof server_buf - 1, 0);
+
+        if (bytes_received > 0) {
+            server_buf[bytes_received] = '\0';
+            printf("Received from server: %s\n", server_buf);
+        } else if (bytes_received == 0) {
+            printf("Server disconnected\n");
+            break;
+        } else {
+            perror("recv");
+            break;
+        }
+    }
+
+    close(client_fd);
 }
