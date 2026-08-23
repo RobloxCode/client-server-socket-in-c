@@ -76,7 +76,7 @@ void bind_socket(int server_fd) {
     struct sockaddr_in addr = {0};
 
     addr.sin_family = AF_INET;
-    addr.sin_port = htonl(PORT);
+    addr.sin_port = htons(PORT);
     addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 
     if (bind(server_fd, (struct sockaddr *)&addr, sizeof addr) == -1) {
